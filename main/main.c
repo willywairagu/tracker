@@ -3,12 +3,14 @@
 #include <freertos/task.h>
 #include <driver/uart.h>
 #include <string.h>
+#include "wifi.h"
 
 #define GPS_UART_NUM UART_NUM_2
 #define GPS_UART_TX_PIN 12
 #define GPS_UART_RX_PIN 34
 #define GPS_UART_BAUDRATE 9600
 #define GPS_UART_BUF_SIZE 1024
+
 
 //This is a function definition for parsing the GGA sentence, which takes in the GGA sentence string,
 //and pointers to store the latitude, longitude, and altitude.
@@ -75,5 +77,7 @@ void gps_task(void *pvParameters) {
 }
 
 void app_main() {
+	//	connect to a wifi network...
+	wifi_init_sta();
     xTaskCreate(gps_task, "gps_task", 4096, NULL, 5, NULL);
 }
