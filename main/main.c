@@ -1,9 +1,13 @@
+#include <connect_wifi.h>
 #include <stdio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <driver/uart.h>
 #include <string.h>
-#include "wifi.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+#include "esp_netif.h"
 
 #define GPS_UART_NUM UART_NUM_2
 #define GPS_UART_TX_PIN 12
@@ -77,7 +81,19 @@ void gps_task(void *pvParameters) {
 }
 
 void app_main() {
+	esp_err_t ret = nvs_flash_init();
+	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+	{
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		ret = nvs_flash_init();
+	}
+
 	//	connect to a wifi network...
-	wifi_init_sta();
-    xTaskCreate(gps_task, "gps_task", 4096, NULL, 5, NULL);
+	ESP_ERROR_CHECK(ret);
+	connect_wifi();
+	if (wifi_connect_status)
+	{
+		xTaskCreate(gps_task, "gps_task", 4096, NULL, 5, NULL);
+//		xTaskCreate(&send_data_to_thingspeak, "send_data_to_thingspeak", 8192, NULL, 6, NULL);
+	}
 }
